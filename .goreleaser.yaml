@@ -1,0 +1,125 @@
+---
+version: 2
+
+project_name: flowtoys-updater
+
+env:
+  - REPO_URL=https://github.com/jon4hz/flowlix
+
+before:
+  hooks:
+    - ./scripts/build-in-docker.sh
+
+builds:
+  - id: flowtoys-updater
+    builder: prebuilt
+    goos: [linux]
+    goarch: [amd64]
+    binary: flowtoys-updater
+    prebuilt:
+      path: prebuilt/{{ .Os }}_{{ .Arch }}/FlowtoysUpdater
+
+archives:
+  - id: archive
+    ids: [flowtoys-updater]
+    formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - src: packaging/70-flowtoys.rules
+        dst: 70-flowtoys.rules
+      - src: packaging/flowtoys-updater.desktop
+        dst: flowtoys-updater.desktop
+      - src: external/FlowtoysUpdater/Resources/icon.png
+        dst: flowtoys-updater.png
+      - LICENSE
+      - README.md
+
+nfpms:
+  - id: nfpm
+    ids: [flowtoys-updater]
+    package_name: flowtoys-updater
+    vendor: flowlix
+    homepage: "{{ .Env.REPO_URL }}"
+    maintainer: "jon4hz <me@jon4hz.io>"
+    description: |-
+      Firmware updater for flowtoys
+    license: GPL-3.0
+    formats:
+      - deb
+      - rpm
+      - archlinux
+    bindir: /usr/bin
+    contents:
+      - src: packaging/70-flowtoys.rules
+        dst: /usr/lib/udev/rules.d/70-flowtoys.rules
+      - src: packaging/flowtoys-updater.desktop
+        dst: /usr/share/applications/flowtoys-updater.desktop
+      - src: external/FlowtoysUpdater/Resources/icon.png
+        dst: /usr/share/pixmaps/flowtoys-updater.png
+    overrides:
+      deb:
+        dependencies:
+          - libx11-6
+          - libxext6
+          - libxinerama1
+          - libfreetype6
+          - libcurl4
+          - libusb-1.0-0
+          - libasound2
+      rpm:
+        dependencies:
+          - libX11
+          - libXext
+          - libXinerama
+          - freetype
+          - libcurl
+          - libusbx
+          - alsa-lib
+      archlinux:
+        dependencies:
+          - libx11
+          - libxext
+          - libxinerama
+          - freetype2
+          - curl
+          - libusb
+          - alsa-lib
+
+aurs:
+  - name: flowtoys-updater-bin
+    ids: [archive]
+    homepage: "{{ .Env.REPO_URL }}"
+    description: "Firmware updater for flowtoys"
+    license: GPL-3.0
+    maintainers:
+      - "jon4hz <me@jon4hz.io>"
+    private_key: "{{ .Env.AUR_KEY }}"
+    git_url: "ssh://aur@aur.archlinux.org/flowtoys-updater-bin.git"
+    provides: [flowtoys-updater]
+    conflicts: [flowtoys-updater]
+    depends:
+      - libx11
+      - libxext
+      - libxinerama
+      - freetype2
+      - curl
+      - libusb
+      - alsa-lib
+    package: |-
+      install -Dm755 "./flowtoys-updater" "${pkgdir}/usr/bin/flowtoys-updater"
+      install -Dm644 "./70-flowtoys.rules" "${pkgdir}/usr/lib/udev/rules.d/70-flowtoys.rules"
+      install -Dm644 "./flowtoys-updater.desktop" "${pkgdir}/usr/share/applications/flowtoys-updater.desktop"
+      install -Dm644 "./flowtoys-updater.png" "${pkgdir}/usr/share/pixmaps/flowtoys-updater.png"
+      install -Dm644 "./LICENSE" "${pkgdir}/usr/share/licenses/flowtoys-updater-bin/LICENSE"
+    commit_author:
+      name: jon4hz
+      email: me@jon4hz.io
+
+release:
+  github:
+    owner: jon4hz
+    name: flowlix
+
+changelog:
+  use: github
+  sort: asc

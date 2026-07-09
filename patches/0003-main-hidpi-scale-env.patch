@@ -1,0 +1,25 @@
+diff --git a/Source/Main.cpp b/Source/Main.cpp
+index 2f90ad1..4961b45 100644
+--- a/Source/Main.cpp
++++ b/Source/Main.cpp
+@@ -30,7 +30,19 @@ public:
+     void initialise (const String& /*commandLine*/) override
+     {
+         // This method is where you should put your application's initialisation code..
+-		
++
++		// HiDPI/Wayland: JUCE 5.4.7 has no automatic display scaling on Linux, so
++		// under XWayland on a scaled display the UI renders at 1x (tiny fonts).
++		// Let the user pick a scale via FLOWTOYS_SCALE (e.g. 2 or 1.5).
++		{
++			String scaleEnv = SystemStats::getEnvironmentVariable("FLOWTOYS_SCALE", String());
++			if (scaleEnv.isNotEmpty())
++			{
++				float scale = scaleEnv.getFloatValue();
++				if (scale > 0.0f) Desktop::getInstance().setGlobalScaleFactor(scale);
++			}
++		}
++
+ 		PropManager::getInstance(); //init PropManager
+ 		FirmwareManager::getInstance(); //init 
+ 

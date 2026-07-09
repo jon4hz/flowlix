@@ -1,0 +1,10 @@
+diff --git a/JuceLibraryCode/include_juce_gui_basics.cpp b/JuceLibraryCode/include_juce_gui_basics.cpp
+index 5c9e275..dcc6487 100644
+--- a/JuceLibraryCode/include_juce_gui_basics.cpp
++++ b/JuceLibraryCode/include_juce_gui_basics.cpp
+@@ -6,4 +6,5 @@
+ */
+ 
+ #include "AppConfig.h"
++#include <array>
+ #include <juce_gui_basics/juce_gui_basics.cpp>

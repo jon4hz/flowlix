@@ -1,0 +1,5 @@
+*
+!external/FlowtoysUpdater
+!patches
+external/FlowtoysUpdater/.git
+external/FlowtoysUpdater/Builds/*/build

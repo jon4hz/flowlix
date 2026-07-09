@@ -1,0 +1,61 @@
+diff --git a/Source/AppUpdater.cpp b/Source/AppUpdater.cpp
+index 34ae8ad..704857e 100644
+--- a/Source/AppUpdater.cpp
++++ b/Source/AppUpdater.cpp
+@@ -100,7 +100,7 @@ void AppUpdater::downloadUpdate()
+ 	URL downloadURL = URL(downloadURLBase + URL::addEscapeChars(downloadingFileName, false));
+ 
+ 	DBG("Downloading " + downloadURL.toString(false) + "...");
+-	downloadTask = downloadURL.downloadToFile(targetFile, "", this);
++	downloadTask.reset(downloadURL.downloadToFile(targetFile, "", this));
+ 
+ 	if (downloadTask == nullptr)
+ 	{
+@@ -150,8 +150,13 @@ void AppUpdater::run()
+ 
+ 			if (versionIsNewerThan(version, ProjectInfo::versionString))
+ 			{
++#if JUCE_LINUX
++				String msg = "A new version of " + String(ProjectInfo::projectName) + " is available: " + version + ".\n\n"
++					"Auto-update is not supported on Linux. Please install the new version through your package manager (apt / dnf / pacman / AUR).";
++#else
+ 				String msg = "A new version of " + String(ProjectInfo::projectName) + " is available : " + version + ", do you want to update the app ?\nYou can also deactivate updates in the preferences.\n \
+ If the auto-update fails, you can always download and replace it manually.";
++#endif
+ 
+ 				Array<var> * changelog = data.getProperty("changelog", var()).getArray();
+ 				String changelogString = "Changes since your version :\n\n";
+@@ -347,7 +352,11 @@ UpdateDialogWindow::UpdateDialogWindow(const String & msg, const String & change
+ 	msgLabel.setColour(msgLabel.textColourId, Colours::lightgrey);
+ 	msgLabel.setText(msg, dontSendNotification);
+ 	statusLabel.setColour(statusLabel.textColourId, Colours::lightgrey);
++#if JUCE_LINUX
++	statusLabel.setText("Install the new version via your package manager.", dontSendNotification);
++#else
+ 	statusLabel.setText("Click \"Update\" to continue...", dontSendNotification);
++#endif
+ 
+ 	changelogLabel.setMultiLine(true);
+ 	changelogLabel.setColour(changelogLabel.backgroundColourId, Colours::darkgrey.darker());
+@@ -356,6 +365,13 @@ UpdateDialogWindow::UpdateDialogWindow(const String & msg, const String & change
+ 	changelogLabel.setReadOnly(true);
+ 	changelogLabel.setText(changelog);
+ 
++#if JUCE_LINUX
++	// Auto-update is disabled on Linux: only offer a "Close" button, the user
++	// updates through their package manager.
++	cancelButton.setButtonText("Close");
++	addAndMakeVisible(&cancelButton);
++	cancelButton.addListener(this);
++#else
+ 	addAndMakeVisible(&okButton);
+ 	addAndMakeVisible(&cancelButton);
+ 	addAndMakeVisible(&manualDownload);
+@@ -363,6 +379,7 @@ UpdateDialogWindow::UpdateDialogWindow(const String & msg, const String & change
+ 	okButton.addListener(this);
+ 	cancelButton.addListener(this);
+ 	manualDownload.addListener(this);
++#endif
+ 
+ 	setSize(500, 400);
+ 

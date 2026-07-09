@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Flowtoys Updater
+Comment=Update firmware on flowtoys
+Exec=env FLOWTOYS_SCALE=2.5 flowtoys-updater
+Icon=flowtoys-updater
+Terminal=false
+Categories=Utility;
+Keywords=flowtoys;capsule;firmware;flowOS;

@@ -1,0 +1,32 @@
+diff --git a/Source/FirmwareManager.cpp b/Source/FirmwareManager.cpp
+index 9672835..5d9d681 100644
+--- a/Source/FirmwareManager.cpp
++++ b/Source/FirmwareManager.cpp
+@@ -19,7 +19,18 @@ FirmwareManager::FirmwareManager() :
+     queuedNotifier(50)
+ 
+ {
++#if JUCE_LINUX
++	// Firmware images are data, not configuration: per the XDG base directory
++	// spec they belong in $XDG_DATA_HOME (default ~/.local/share). JUCE 5.4.7
++	// maps userApplicationDataDirectory to ~/.config on Linux and ignores the
++	// XDG environment variables, so resolve the folder by hand.
++	File dataHome = File::getSpecialLocation(File::SpecialLocationType::userHomeDirectory).getChildFile(".local").getChildFile("share");
++	const char * xdgDataHome = getenv("XDG_DATA_HOME");
++	if (xdgDataHome != nullptr && xdgDataHome[0] == '/') dataHome = File(String(CharPointer_UTF8(xdgDataHome)));
++	firmwareFolder = dataHome.getChildFile("FlowtoysFirmwares");
++#else
+ 	firmwareFolder = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("FlowtoysFirmwares");
++#endif
+ 	if (!firmwareFolder.exists()) firmwareFolder.createDirectory();
+ 
+ 	startThread();
+@@ -251,7 +262,7 @@ void FirmwareManager::run()
+                         
+                         DBG("Downloading " << fURL);
+ 						URL downloadURL(fURL);
+-                        std::unique_ptr<URL::DownloadTask> t = downloadURL.downloadToFile(f, "", this);
++                        std::unique_ptr<URL::DownloadTask> t(downloadURL.downloadToFile(f, "", this));
+                         if(t == nullptr)
+                         {
+                             DBG("Download errored");

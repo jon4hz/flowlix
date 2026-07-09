@@ -1,0 +1,15 @@
+# flowtoys capsule / vision prop USB access
+#
+# The updater talks to the prop over USB HID using the hidapi *libusb* backend,
+# which needs direct write access to the USB device.
+#
+# The file MUST sort before 73-seat-late.rules: that rule is what turns the
+# "uaccess" tag into a per-user ACL, and udev processes rules in lexical
+# order, so a 99-* rule adds the tag too late and no ACL is ever granted.
+#
+# Install:
+#   sudo cp 70-flowtoys.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload-rules && sudo udevadm trigger
+#
+# flowtoys vendor id = 0xF107.
+SUBSYSTEM=="usb", ATTRS{idVendor}=="f107", MODE="0660", GROUP="uucp", TAG+="uaccess"
