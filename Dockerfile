@@ -1,4 +1,4 @@
-FROM fedora:44 AS build
+FROM fedora:46 AS build
 
 ARG JUCE_TAG=5.4.7
 
